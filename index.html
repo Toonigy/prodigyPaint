@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Art Paint - Login/Signup</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            max-width: 400px;
+            width: 90%;
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+            margin-top: 0.75rem;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-align: left;
+        }
+        .message.success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .message.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-bold text-gray-800 mb-6">Art Paint</h1>
+
+        <!-- Authentication Status Display -->
+        <div id="auth-status" class="mb-4 text-gray-700">
+            Loading authentication status...
+        </div>
+
+        <!-- Login Form -->
+        <div id="login-form">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Login</h2>
+            <input type="email" id="login-email" placeholder="Email" class="mb-3" />
+            <input type="password" id="login-password" placeholder="Password" class="mb-4" />
+            <button id="login-btn" class="btn-primary">Log In</button>
+            <button id="show-signup-btn" class="btn-secondary">Don't have an account? Sign Up</button>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signup-form" class="hidden">
+            <h2 class="text-2xl font-semibold text-gray-700 mb-4">Sign Up</h2>
+            <input type="email" id="signup-email" placeholder="Email" class="mb-3" />
+            <input type="password" id="signup-password" placeholder="Password" class="mb-4" />
+            <button id="signup-btn" class="btn-primary">Sign Up</button>
+            <button id="show-login-btn" class="btn-secondary">Already have an account? Log In</button>
+        </div>
+
+        <!-- Message Display Area -->
+        <div id="message-area" class="message hidden"></div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase config and app ID
+        // These are provided by the Canvas environment
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app;
+        let auth;
+        let db;
+        let userId = null; // To store the current user's ID
+
+        // Function to display messages to the user
+        function showMessage(text, type) {
+            const messageArea = document.getElementById('message-area');
+            messageArea.textContent = text;
+            messageArea.className = `message ${type}`; // Apply success or error class
+            messageArea.classList.remove('hidden');
+            setTimeout(() => {
+                messageArea.classList.add('hidden');
+            }, 5000); // Hide after 5 seconds
+        }
+
+        // Initialize Firebase and set up authentication
+        async function initializeFirebaseAndAuth() {
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app); // Initialize Firestore, even if not used immediately
+
+                // Sign in with custom token if available, otherwise anonymously
+                if (initialAuthToken) {
+                    await signInWithCustomToken(auth, initialAuthToken);
+                    console.log("Signed in with custom token.");
+                } else {
+                    await signInAnonymously(auth);
+                    console.log("Signed in anonymously.");
+                }
+
+                // Listen for authentication state changes
+                onAuthStateChanged(auth, (user) => {
+                    const authStatusElement = document.getElementById('auth-status');
+                    if (user) {
+                        userId = user.uid;
+                        authStatusElement.textContent = `Logged in as: ${user.email || 'Anonymous'} (ID: ${userId})`;
+                        // Optionally hide login/signup forms if logged in
+                        document.getElementById('login-form').classList.add('hidden');
+                        document.getElementById('signup-form').classList.add('hidden');
+                        showMessage(`Welcome, ${user.email || 'Anonymous'}!`, 'success');
+                        // In a real app, you'd redirect to the paint canvas here
+                    } else {
+                        userId = null;
+                        authStatusElement.textContent = 'Not logged in.';
+                        // Show login form by default if not logged in
+                        document.getElementById('login-form').classList.remove('hidden');
+                        document.getElementById('signup-form').classList.add('hidden');
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase or signing in:", error);
+                showMessage(`Firebase initialization error: ${error.message}`, 'error');
+            }
+        }
+
+        // Handle user signup
+        document.getElementById('signup-btn').addEventListener('click', async () => {
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+
+            if (!email || !password) {
+                showMessage('Please enter both email and password for signup.', 'error');
+                return;
+            }
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                showMessage(`Successfully signed up as ${userCredential.user.email}! You are now logged in.`, 'success');
+                // Clear form fields
+                document.getElementById('signup-email').value = '';
+                document.getElementById('signup-password').value = '';
+            } catch (error) {
+                console.error("Signup error:", error);
+                showMessage(`Signup failed: ${error.message}`, 'error');
+            }
+        });
+
+        // Handle user login
+        document.getElementById('login-btn').addEventListener('click', async () => {
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showMessage('Please enter both email and password for login.', 'error');
+                return;
+            }
+
+            try {
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                showMessage(`Successfully logged in as ${userCredential.user.email}!`, 'success');
+                // Clear form fields
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+            } catch (error) {
+                console.error("Login error:", error);
+                showMessage(`Login failed: ${error.message}`, 'error');
+            }
+        });
+
+        // Toggle between login and signup forms
+        document.getElementById('show-signup-btn').addEventListener('click', () => {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+            document.getElementById('message-area').classList.add('hidden'); // Clear messages on toggle
+        });
+
+        document.getElementById('show-login-btn').addEventListener('click', () => {
+            document.getElementById('signup-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('message-area').classList.add('hidden'); // Clear messages on toggle
+        });
+
+        // Initialize Firebase and Auth when the window loads
+        window.onload = initializeFirebaseAndAuth;
+
+    </script>
+</body>
+</html>

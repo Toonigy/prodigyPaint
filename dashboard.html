@@ -183,10 +183,9 @@
         });
 
         // Event listeners for new buttons (placeholders for now)
-        artStudioBtn.addEventListener('click', () => {
-            showMessage('Redirecting to Art Studio (page not yet created)...', 'success');
-            // In a real app: window.location.href = 'art-studio.html';
-        });
+artStudioBtn.addEventListener('click', () => {
+    window.location.href = 'art-studio.html'; // Changed from showMessage
+});
 
         whatsNewBtn.addEventListener('click', () => {
             showMessage('Redirecting to What\'s New page (page not yet created)...', 'success');

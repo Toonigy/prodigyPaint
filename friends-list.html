@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Art Paint - Friends List</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            margin-top: 1rem;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-align: left;
+            width: 100%;
+            max-width: 800px;
+            box-sizing: border-box;
+        }
+        .message.success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .message.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">Friends List</h2>
+        <p class="text-gray-600 mb-4" id="user-status">Loading user status...</p>
+
+        <div class="text-gray-700 text-lg mb-8">
+            This is where your friends list will be! You can add features to search for friends,
+            send requests, and view their profiles here.
+        </div>
+
+        <button id="back-to-dashboard-btn" class="btn-secondary">Back to Dashboard</button>
+        <button id="logout-btn" class="btn-secondary">Log Out</button>
+
+        <!-- Message Display Area -->
+        <div id="message-area" class="message hidden"></div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables for Firebase config and app ID
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = {
+            apiKey: "AIzaSyDh1cFDmqgvZ_3_uiI5jdRV7ttLKtV6c5Q",
+            authDomain: "websitetester-9bfb4.firebaseapp.com",
+            databaseURL: "https://websitetester-9bfb4-default-rtdb.firebaseio.com",
+            projectId: "websitetester-9bfb4",
+            storageBucket: "websitetester-9bfb4.firebasestorage.app",
+            messagingSenderId: "483339959826",
+            appId: "1:483339959826:web:3e9303f92ffb302ca062cb",
+            measurementId: "G-WXTK30J819"
+        };
+
+        let app;
+        let auth;
+        let db;
+        let userId = null;
+
+        const userStatusElement = document.getElementById('user-status');
+        const messageArea = document.getElementById('message-area');
+        const backToDashboardBtn = document.getElementById('back-to-dashboard-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+
+        // Function to display messages to the user
+        function showMessage(text, type) {
+            messageArea.textContent = text;
+            messageArea.className = `message ${type}`;
+            messageArea.classList.remove('hidden');
+            setTimeout(() => {
+                messageArea.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Initialize Firebase and set up authentication listener
+        async function initializeFirebaseAndAuth() {
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        userId = user.uid;
+                        const displayName = user.displayName || user.email || 'Anonymous';
+                        userStatusElement.textContent = `Logged in as: ${displayName} (ID: ${userId})`;
+                        showMessage(`Welcome to your Friends List, ${displayName}!`, 'success');
+                    } else {
+                        // If user logs out or session expires, redirect back to login
+                        console.log("No user logged in, redirecting to login page.");
+                        window.location.href = 'index.html';
+                    }
+                });
+
+            } catch (error) {
+                console.error("Error initializing Firebase or setting up auth listener:", error);
+                showMessage(`Firebase initialization error: ${error.message}`, 'error');
+            }
+        }
+
+        // Event listeners
+        backToDashboardBtn.addEventListener('click', () => {
+            window.location.href = 'dashboard.html';
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                showMessage('Logged out successfully! Redirecting...', 'success');
+                // onAuthStateChanged will handle the redirect to the login page
+            } catch (error) {
+                console.error("Logout error:", error);
+                showMessage(`Logout failed: ${error.message}`, 'error');
+            }
+        });
+
+        // Initialize Firebase and Auth when the window loads
+        window.onload = initializeFirebaseAndAuth;
+    </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Art Paint - User Profile</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 600px;
+            width: 90%;
+            background-color: #ffffff;
+            padding: 2.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        .profile-pic {
+            width: 128px; /* w-32 */
+            height: 128px; /* h-32 */
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 1.5rem;
+            border: 4px solid #4f46e5;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #4b5563;
+        }
+        .info-value {
+            color: #374151;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+            margin-top: 1rem;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            text-align: left;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+        }
+        .message.success {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        .message.error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6">User Profile</h2>
+        <p class="text-gray-600 mb-4" id="user-status">Loading user status...</p>
+
+        <!-- Profile Picture -->
+        <img id="profile-picture" class="profile-pic" src="https://placehold.co/128x128/cccccc/333333?text=User" alt="User Profile Picture">
+
+        <div class="text-lg mb-8">
+            <div class="info-item">
+                <span class="info-label">Username:</span>
+                <span id="profile-username" class="info-value">N/A</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Email:</span>
+                <span id="profile-email" class="info-value">N/A</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">User ID:</span>
+                <span id="profile-userid" class="info-value">N/A</span>
+            </div>
+        </div>
+
+        <button id="back-to-dashboard-btn" class="btn-secondary">Back to Dashboard</button>
+        <button id="logout-btn" class="btn-secondary">Log Out</button>
+
+        <!-- Message Display Area -->
+        <div id="message-area" class="message hidden"></div>
+    </div>
+
+    <!-- Link to external JavaScript file -->
+    <script type="module" src="profile.js"></script>
+</body>
+</html>

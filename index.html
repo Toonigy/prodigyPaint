@@ -98,7 +98,7 @@
 
         <!-- Authentication Status Display -->
         <div id="auth-status" class="mb-4 text-gray-700">
-            Loading authentication status...
+            Please log in or sign up.
         </div>
 
         <!-- Login Form -->
@@ -149,8 +149,8 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Import doc and setDoc
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables for Firebase config and app ID
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -164,7 +164,6 @@
             appId: "1:483339959826:web:3e9303f92ffb302ca062cb",
             measurementId: "G-WXTK30J819"
         };
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
         let app;
         let auth;
@@ -213,21 +212,12 @@
             }
         }
 
-        // Initialize Firebase and set up authentication
-        async function initializeFirebaseAndAuth() {
+        // Initialize Firebase
+        async function initializeFirebase() {
             try {
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-
-                // Sign in with custom token if available, otherwise anonymously
-                if (initialAuthToken) {
-                    await signInWithCustomToken(auth, initialAuthToken);
-                    console.log("Signed in with custom token.");
-                } else {
-                    await signInAnonymously(auth);
-                    console.log("Signed in anonymously.");
-                }
 
                 // Listen for authentication state changes
                 onAuthStateChanged(auth, (user) => {
@@ -240,15 +230,15 @@
                         redirectToDashboard();
                     } else {
                         userId = null;
-                        authStatusElement.textContent = 'Not logged in.';
-                        authContainer.classList.remove('hidden');
+                        authStatusElement.textContent = 'Please log in or sign up.'; // Clear status if no user
+                        authContainer.classList.remove('hidden'); // Ensure forms are visible
                         loginForm.classList.remove('hidden');
-                        signupForm.classList.add('hidden');
+                        signupForm.classList.add('hidden'); // Default to login form
                     }
                 });
 
             } catch (error) {
-                console.error("Error initializing Firebase or signing in:", error);
+                console.error("Error initializing Firebase:", error);
                 showMessage(`Firebase initialization error: ${error.message}`, 'error');
             }
         }
@@ -342,8 +332,8 @@
             messageArea.classList.add('hidden');
         });
 
-        // Initialize Firebase and Auth when the window loads
-        window.onload = initializeFirebaseAndAuth;
+        // Initialize Firebase when the window loads
+        window.onload = initializeFirebase;
 
     </script>
 </body>

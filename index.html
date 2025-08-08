@@ -150,7 +150,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Import doc and setDoc
 
         // Global variables for Firebase config and app ID
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -195,6 +195,24 @@
             window.location.href = 'dashboard.html';
         }
 
+        // Function to save/update user's public profile in Firestore
+        async function savePublicProfile(user) {
+            if (!user) return;
+
+            try {
+                const publicProfileRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, user.uid);
+                await setDoc(publicProfileRef, {
+                    displayName: user.displayName || user.email,
+                    email: user.email,
+                    photoURL: user.photoURL || null,
+                    lastLogin: new Date(),
+                }, { merge: true }); // Use merge to update existing fields without overwriting others
+                console.log("Public profile saved/updated for:", user.uid);
+            } catch (error) {
+                console.error("Error saving public profile:", error);
+            }
+        }
+
         // Initialize Firebase and set up authentication
         async function initializeFirebaseAndAuth() {
             try {
@@ -218,12 +236,11 @@
                         const displayName = user.displayName || user.email || 'Anonymous';
                         authStatusElement.textContent = `Logged in as: ${displayName} (ID: ${userId})`;
                         showMessage(`Welcome, ${displayName}! Redirecting to dashboard...`, 'success');
-                        // Redirect to dashboard immediately if user is logged in
+                        savePublicProfile(user); // Save/update public profile on any login
                         redirectToDashboard();
                     } else {
                         userId = null;
                         authStatusElement.textContent = 'Not logged in.';
-                        // Ensure login form is visible if not logged in
                         authContainer.classList.remove('hidden');
                         loginForm.classList.remove('hidden');
                         signupForm.classList.add('hidden');
@@ -255,7 +272,8 @@
                 document.getElementById('signup-username').value = '';
                 document.getElementById('signup-email').value = '';
                 document.getElementById('signup-password').value = '';
-                redirectToDashboard(); // Redirect after successful signup
+                savePublicProfile(userCredential.user); // Save public profile after signup
+                redirectToDashboard();
             } catch (error) {
                 console.error("Signup error:", error);
                 showMessage(`Signup failed: ${error.message}`, 'error');
@@ -279,7 +297,8 @@
                 // Clear form fields
                 document.getElementById('login-email').value = '';
                 document.getElementById('login-password').value = '';
-                redirectToDashboard(); // Redirect after successful login
+                savePublicProfile(userCredential.user); // Save public profile after login
+                redirectToDashboard();
             } catch (error) {
                 console.error("Login error:", error);
                 showMessage(`Login failed: ${error.message}`, 'error');
@@ -291,14 +310,13 @@
             const provider = new GoogleAuthProvider();
             try {
                 const result = await signInWithPopup(auth, provider);
-                // The signed-in user info.
                 const user = result.user;
                 const displayName = user.displayName || user.email;
                 showMessage(`Successfully signed in with Google as ${displayName}! Redirecting to dashboard...`, 'success');
-                redirectToDashboard(); // Redirect after successful Google sign-in
+                savePublicProfile(user); // Save public profile after Google sign-in
+                redirectToDashboard();
             } catch (error) {
                 console.error("Google sign-in error:", error);
-                // Handle specific errors, e.g., popup closed by user
                 if (error.code === 'auth/popup-closed-by-user') {
                     showMessage('Google sign-in cancelled by user.', 'error');
                 } else {
@@ -315,13 +333,13 @@
         document.getElementById('show-signup-btn').addEventListener('click', () => {
             loginForm.classList.add('hidden');
             signupForm.classList.remove('hidden');
-            messageArea.classList.add('hidden'); // Clear messages on toggle
+            messageArea.classList.add('hidden');
         });
 
         document.getElementById('show-login-btn').addEventListener('click', () => {
             signupForm.classList.add('hidden');
             loginForm.classList.remove('hidden');
-            messageArea.classList.add('hidden'); // Clear messages on toggle
+            messageArea.classList.add('hidden');
         });
 
         // Initialize Firebase and Auth when the window loads

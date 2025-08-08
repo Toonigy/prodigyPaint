@@ -74,6 +74,22 @@
         .hidden {
             display: none;
         }
+        .google-btn {
+            background-color: #db4437; /* Google red */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .google-btn:hover {
+            background-color: #c23321;
+        }
+        .google-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
     </style>
 </head>
 <body>
@@ -92,6 +108,17 @@
             <input type="password" id="login-password" placeholder="Password" class="mb-4" />
             <button id="login-btn" class="btn-primary">Log In</button>
             <button id="show-signup-btn" class="btn-secondary">Don't have an account? Sign Up</button>
+            <div class="mt-6 text-gray-500">OR</div>
+            <button id="google-login-btn" class="google-btn">
+                <svg class="google-icon" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.6-6.44C34.65 2.54 29.67 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-.83-.07-1.65-.2-2.46H24v4.61h12.48c-.75 3.7-2.98 6.86-6.35 9.06l6.01 4.67c3.53-2.76 6.6-8.13 6.6-14.88z"/>
+                    <path fill="#FBBC04" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59L2.56 13.22C.99 16.21 0 20.01 0 24s.99 7.79 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-6.01-4.67c-3.09 2.14-7.03 3.5-9.89 3.5-6.68 0-11.72-4.39-13.65-10.39l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    <path fill="none" d="M0 0h48v48H0z"/>
+                </svg>
+                Sign in with Google
+            </button>
         </div>
 
         <!-- Signup Form -->
@@ -102,6 +129,17 @@
             <input type="password" id="signup-password" placeholder="Password" class="mb-4" />
             <button id="signup-btn" class="btn-primary">Sign Up</button>
             <button id="show-login-btn" class="btn-secondary">Already have an account? Log In</button>
+            <div class="mt-6 text-gray-500">OR</div>
+            <button id="google-signup-btn" class="google-btn">
+                <svg class="google-icon" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.6-6.44C34.65 2.54 29.67 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                    <path fill="#4285F4" d="M46.98 24.55c0-.83-.07-1.65-.2-2.46H24v4.61h12.48c-.75 3.7-2.98 6.86-6.35 9.06l6.01 4.67c3.53-2.76 6.6-8.13 6.6-14.88z"/>
+                    <path fill="#FBBC04" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59L2.56 13.22C.99 16.21 0 20.01 0 24s.99 7.79 2.56 10.78l7.97-6.19z"/>
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-6.01-4.67c-3.09 2.14-7.03 3.5-9.89 3.5-6.68 0-11.72-4.39-13.65-10.39l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                    <path fill="none" d="M0 0h48v48H0z"/>
+                </svg>
+                Sign up with Google
+            </button>
         </div>
 
         <!-- Message Display Area -->
@@ -111,7 +149,7 @@
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, updateProfile } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, signInWithCustomToken, onAuthStateChanged, signOut, updateProfile, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Global variables for Firebase config and app ID
@@ -139,6 +177,8 @@
         const signupForm = document.getElementById('signup-form');
         const authStatusElement = document.getElementById('auth-status');
         const messageArea = document.getElementById('message-area');
+        const googleLoginBtn = document.getElementById('google-login-btn');
+        const googleSignupBtn = document.getElementById('google-signup-btn');
 
         // Function to display messages to the user
         function showMessage(text, type) {
@@ -245,6 +285,31 @@
                 showMessage(`Login failed: ${error.message}`, 'error');
             }
         });
+
+        // Handle Google Login/Signup
+        async function handleGoogleSignIn() {
+            const provider = new GoogleAuthProvider();
+            try {
+                const result = await signInWithPopup(auth, provider);
+                // The signed-in user info.
+                const user = result.user;
+                const displayName = user.displayName || user.email;
+                showMessage(`Successfully signed in with Google as ${displayName}! Redirecting to dashboard...`, 'success');
+                redirectToDashboard(); // Redirect after successful Google sign-in
+            } catch (error) {
+                console.error("Google sign-in error:", error);
+                // Handle specific errors, e.g., popup closed by user
+                if (error.code === 'auth/popup-closed-by-user') {
+                    showMessage('Google sign-in cancelled by user.', 'error');
+                } else {
+                    showMessage(`Google sign-in failed: ${error.message}`, 'error');
+                }
+            }
+        }
+
+        // Attach Google login/signup event listeners
+        googleLoginBtn.addEventListener('click', handleGoogleSignIn);
+        googleSignupBtn.addEventListener('click', handleGoogleSignIn);
 
         // Toggle between login and signup forms
         document.getElementById('show-signup-btn').addEventListener('click', () => {

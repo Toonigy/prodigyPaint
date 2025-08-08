@@ -70,11 +70,15 @@ async function fetchAndDisplayFriends() {
             const friendPhotoURL = friendData.photoURL || "https://placehold.co/40x40/cccccc/333333?text=User";
 
             const listItem = document.createElement('li');
-            listItem.className = 'friend-item';
+            listItem.className = 'friend-item cursor-pointer hover:bg-gray-50'; // Added hover effect
             listItem.innerHTML = `
                 <img src="${friendPhotoURL}" alt="${friendDisplayName} Profile">
                 <span>${friendDisplayName} (ID: ${friendId})</span>
             `;
+            // Add click event listener to navigate to friend's profile
+            listItem.addEventListener('click', () => {
+                window.location.href = `profile.html?userId=${friendId}`;
+            });
             friendsListUl.appendChild(listItem);
         });
         showMessage('Friends list loaded successfully!', 'success');
@@ -108,7 +112,7 @@ addFriendBtn.addEventListener('click', async () => {
     try {
         // Check if the friend already exists in the current user's list
         const friendDocRef = doc(db, `artifacts/${appId}/users/${userId}/friends`, friendIdToAdd);
-        const friendDocSnap = await getDoc(friendDocRef); // Use getDoc for single document check
+        const friendDocSnap = await getDoc(friendDocRef);
 
         if (friendDocSnap.exists()) {
             showMessage('This user is already in your friends list.', 'error');

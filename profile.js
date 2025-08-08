@@ -2,7 +2,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js"; // Import getDoc and setDoc
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Global variables for Firebase config and app ID
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -98,30 +98,35 @@ async function initializeFirebaseAndAuth() {
         const urlParams = new URLSearchParams(window.location.search);
         const viewedUserId = urlParams.get('userId');
 
+        // If a userId is in the URL, try to display that user's public profile first
         if (viewedUserId) {
-            // If a userId is in the URL, try to display that user's public profile
             await fetchAndDisplayPublicProfile(viewedUserId);
         }
 
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUserId = user.uid;
-                // If no specific user was requested via URL, or if the requested user is the current user
+                // Always ensure the current user's public profile is up-to-date when they are logged in
+                // This is crucial for other users to view their profile correctly
+                const publicProfileRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUserId);
+                await setDoc(publicProfileRef, {
+                    displayName: user.displayName || user.email,
+                    email: user.email,
+                    photoURL: user.photoURL || null,
+                    lastUpdated: new Date()
+                }, { merge: true });
+
+                // If no specific user was requested via URL, or if the requested user is the current user, display their profile
                 if (!viewedUserId || viewedUserId === currentUserId) {
-                    displayProfileData(user);
+                    displayProfileData(user); // Display current user's own profile
                     userStatusElement.textContent = `Logged in as: ${user.displayName || 'Anonymous'} (ID: ${currentUserId})`;
                     showMessage(`Welcome to your profile, ${user.displayName || 'Anonymous'}!`, 'success');
-
-                    // Also ensure the current user's public profile is up-to-date
-                    // This is crucial for other users to view their profile correctly
-                    const publicProfileRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, currentUserId);
-                    await setDoc(publicProfileRef, {
-                        displayName: user.displayName || user.email,
-                        email: user.email,
-                        photoURL: user.photoURL || null,
-                        lastUpdated: new Date()
-                    }, { merge: true }); // Use merge to update existing fields without overwriting others
                 }
+                // If viewedUserId is present and different from currentUserId,
+                // fetchAndDisplayPublicProfile(viewedUserId) has already been called
+                // and its output (friend's profile or an error message) should persist.
+                // No need to overwrite it here.
+
             } else {
                 // If no user is logged in AND no specific user was requested via URL, redirect to login
                 if (!viewedUserId) {

@@ -2,7 +2,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { getFirestore, collection, doc, setDoc, getDocs, query, where, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 // Global variables for Firebase config and app ID
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -67,11 +67,12 @@ async function fetchAndDisplayFriends() {
             const friendData = doc.data();
             const friendId = doc.id; // The document ID is the friend's UID
             const friendDisplayName = friendData.displayName || `User ${friendId.substring(0, 8)}...`; // Use stored display name or fallback
+            const friendPhotoURL = friendData.photoURL || "https://placehold.co/40x40/cccccc/333333?text=User";
 
             const listItem = document.createElement('li');
             listItem.className = 'friend-item';
             listItem.innerHTML = `
-                <img src="https://placehold.co/40x40/cccccc/333333?text=User" alt="${friendDisplayName} Profile">
+                <img src="${friendPhotoURL}" alt="${friendDisplayName} Profile">
                 <span>${friendDisplayName} (ID: ${friendId})</span>
             `;
             friendsListUl.appendChild(listItem);
@@ -107,39 +108,37 @@ addFriendBtn.addEventListener('click', async () => {
     try {
         // Check if the friend already exists in the current user's list
         const friendDocRef = doc(db, `artifacts/${appId}/users/${userId}/friends`, friendIdToAdd);
-        const friendDocSnap = await getDocs(query(collection(db, `artifacts/${appId}/users/${userId}/friends`), where('__name__', '==', friendIdToAdd)));
+        const friendDocSnap = await getDoc(friendDocRef); // Use getDoc for single document check
 
-        if (!friendDocSnap.empty) {
+        if (friendDocSnap.exists()) {
             showMessage('This user is already in your friends list.', 'error');
             return;
         }
 
-        // IMPORTANT: To get the actual display name of the friend, you would typically
-        // query a *public* user profiles collection (e.g., /artifacts/{appId}/public/data/user_profiles/{friendId}).
-        // For this example, we'll use a placeholder or assume the adding user knows the name.
-        // For now, we'll just store the ID and a generic display name.
-        let friendDisplayName = `User ${friendIdToAdd.substring(0, 8)}...`; // Default fallback
-
-        // If you had a public user profiles collection, you'd do something like:
-        /*
+        // Query the public user profiles collection to get the actual display name and photo
         const publicProfileRef = doc(db, `artifacts/${appId}/public/data/user_profiles`, friendIdToAdd);
         const publicProfileSnap = await getDoc(publicProfileRef);
+
+        let friendDisplayName = `User ${friendIdToAdd.substring(0, 8)}...`; // Default fallback
+        let friendPhotoURL = "https://placehold.co/40x40/cccccc/333333?text=User";
+
         if (publicProfileSnap.exists()) {
-            friendDisplayName = publicProfileSnap.data().displayName || friendDisplayName;
+            const publicProfileData = publicProfileSnap.data();
+            friendDisplayName = publicProfileData.displayName || friendDisplayName;
+            friendPhotoURL = publicProfileData.photoURL || friendPhotoURL;
         } else {
-            showMessage('User ID not found or no public profile available.', 'error');
+            showMessage('User ID not found or no public profile available for this ID.', 'error');
             return;
         }
-        */
 
         // Add the friend to the current user's friends subcollection
         await setDoc(friendDocRef, {
-            displayName: friendDisplayName, // Store the display name
+            displayName: friendDisplayName,
+            photoURL: friendPhotoURL,
             addedAt: new Date(),
-            // You might add other info like photoURL if fetched from a public profile
         });
 
-        showMessage(`Friend with ID ${friendIdToAdd} added successfully!`, 'success');
+        showMessage(`Friend "${friendDisplayName}" added successfully!`, 'success');
         friendIdInput.value = ''; // Clear input
         fetchAndDisplayFriends(); // Refresh the list
 

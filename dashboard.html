@@ -188,13 +188,11 @@ artStudioBtn.addEventListener('click', () => {
 });
 
         whatsNewBtn.addEventListener('click', () => {
-            showMessage('Redirecting to What\'s New page (page not yet created)...', 'success');
-            // In a real app: window.location.href = 'whats-new.html';
+window.location.href = 'whats-new.html'; // Changed from showMessage
         });
 
         friendsListBtn.addEventListener('click', () => {
-            showMessage('Redirecting to Friends List page (page not yet created)...', 'success');
-            // In a real app: window.location.href = 'friends-list.html';
+window.location.href = 'friends-list.html'; // Changed from showMessage
         });
 
         // Initialize Firebase and Auth when the window loads

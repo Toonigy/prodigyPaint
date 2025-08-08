@@ -43,6 +43,13 @@
         .btn-secondary:hover {
             background-color: #d1d5db;
         }
+        .btn-primary {
+            background-color: #4f46e5;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4338ca;
+        }
         .message {
             margin-top: 1rem;
             padding: 0.75rem;
@@ -61,6 +68,56 @@
             background-color: #fee2e2;
             color: #991b1b;
         }
+        .friends-section {
+            margin-top: 2rem;
+            text-align: left;
+        }
+        .friends-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 1rem;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .friend-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .friend-item:last-child {
+            border-bottom: none;
+        }
+        .friend-item img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 1rem;
+            object-fit: cover;
+        }
+        .friend-item span {
+            font-weight: 500;
+            color: #374151;
+        }
+        .add-friend-form {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1.5rem;
+            align-items: center;
+        }
+        .add-friend-form input {
+            flex-grow: 1;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            box-sizing: border-box;
+        }
+        .add-friend-form button {
+            width: auto;
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
@@ -68,9 +125,24 @@
         <h2 class="text-3xl font-bold text-gray-800 mb-6">Friends List</h2>
         <p class="text-gray-600 mb-4" id="user-status">Loading user status...</p>
 
-        <div class="text-gray-700 text-lg mb-8">
-            This is where your friends list will be! You can add features to search for friends,
-            send requests, and view their profiles here.
+        <div class="friends-section">
+            <h3 class="text-2xl font-semibold text-gray-700 mb-4">My Friends</h3>
+            <ul id="friends-list" class="friends-list">
+                <!-- Friends will be dynamically loaded here -->
+                <li class="friend-item">
+                    <img src="https://placehold.co/40x40/cccccc/333333?text=F1" alt="Friend 1 Profile">
+                    <span>Friend One (ID: abcdef123)</span>
+                </li>
+                <li class="friend-item">
+                    <img src="https://placehold.co/40x40/cccccc/333333?text=F2" alt="Friend 2 Profile">
+                    <span>Friend Two (ID: ghihkl456)</span>
+                </li>
+            </ul>
+
+            <div class="add-friend-form">
+                <input type="text" id="friend-id-input" placeholder="Enter Friend's User ID">
+                <button id="add-friend-btn" class="btn-primary">Add Friend</button>
+            </div>
         </div>
 
         <button id="back-to-dashboard-btn" class="btn-secondary">Back to Dashboard</button>
@@ -80,89 +152,7 @@
         <div id="message-area" class="message hidden"></div>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Global variables for Firebase config and app ID
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = {
-            apiKey: "AIzaSyDh1cFDmqgvZ_3_uiI5jdRV7ttLKtV6c5Q",
-            authDomain: "websitetester-9bfb4.firebaseapp.com",
-            databaseURL: "https://websitetester-9bfb4-default-rtdb.firebaseio.com",
-            projectId: "websitetester-9bfb4",
-            storageBucket: "websitetester-9bfb4.firebasestorage.app",
-            messagingSenderId: "483339959826",
-            appId: "1:483339959826:web:3e9303f92ffb302ca062cb",
-            measurementId: "G-WXTK30J819"
-        };
-
-        let app;
-        let auth;
-        let db;
-        let userId = null;
-
-        const userStatusElement = document.getElementById('user-status');
-        const messageArea = document.getElementById('message-area');
-        const backToDashboardBtn = document.getElementById('back-to-dashboard-btn');
-        const logoutBtn = document.getElementById('logout-btn');
-
-        // Function to display messages to the user
-        function showMessage(text, type) {
-            messageArea.textContent = text;
-            messageArea.className = `message ${type}`;
-            messageArea.classList.remove('hidden');
-            setTimeout(() => {
-                messageArea.classList.add('hidden');
-            }, 5000);
-        }
-
-        // Initialize Firebase and set up authentication listener
-        async function initializeFirebaseAndAuth() {
-            try {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        const displayName = user.displayName || user.email || 'Anonymous';
-                        userStatusElement.textContent = `Logged in as: ${displayName} (ID: ${userId})`;
-                        showMessage(`Welcome to your Friends List, ${displayName}!`, 'success');
-                    } else {
-                        // If user logs out or session expires, redirect back to login
-                        console.log("No user logged in, redirecting to login page.");
-                        window.location.href = 'index.html';
-                    }
-                });
-
-            } catch (error) {
-                console.error("Error initializing Firebase or setting up auth listener:", error);
-                showMessage(`Firebase initialization error: ${error.message}`, 'error');
-            }
-        }
-
-        // Event listeners
-        backToDashboardBtn.addEventListener('click', () => {
-            window.location.href = 'dashboard.html';
-        });
-
-        logoutBtn.addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                showMessage('Logged out successfully! Redirecting...', 'success');
-                // onAuthStateChanged will handle the redirect to the login page
-            } catch (error) {
-                console.error("Logout error:", error);
-                showMessage(`Logout failed: ${error.message}`, 'error');
-            }
-        });
-
-        // Initialize Firebase and Auth when the window loads
-        window.onload = initializeFirebaseAndAuth;
-    </script>
+    <!-- Link to external JavaScript file -->
+    <script type="module" src="friends-list.js"></script>
 </body>
 </html>

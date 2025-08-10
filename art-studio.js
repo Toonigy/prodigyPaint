@@ -32,12 +32,20 @@ const brushSizeValueSpan = document.getElementById('brush-size-value');
 const clearCanvasBtn = document.getElementById('clear-canvas-btn');
 const backToDashboardBtn = document.getElementById('back-to-dashboard-btn');
 
-// New Text Tool Elements
+// Text Tool Elements
 const textInput = document.getElementById('text-input');
 const fontSizeInput = document.getElementById('font-size');
 const fontSizeValueSpan = document.getElementById('font-size-value');
 const textColorPicker = document.getElementById('text-color-picker');
 const addTextBtn = document.getElementById('add-text-btn');
+
+// Shape Tool Elements
+const shapeTypeSelect = document.getElementById('shape-type');
+const shapeFillColorPicker = document.getElementById('shape-fill-color');
+const shapeBorderColorPicker = document.getElementById('shape-border-color');
+const shapeBorderSizeInput = document.getElementById('shape-border-size');
+const shapeBorderSizeValueSpan = document.getElementById('shape-border-size-value');
+const addShapeBtn = document.getElementById('add-shape-btn');
 
 let isDrawing = false;
 let lastX = 0;
@@ -49,6 +57,13 @@ let brushSize = parseInt(brushSizeInput.value);
 let currentText = "";
 let fontSize = parseInt(fontSizeInput.value);
 let textColor = textColorPicker.value;
+
+// Shape tool properties
+let currentShapeType = shapeTypeSelect.value;
+let shapeFillColor = shapeFillColorPicker.value;
+let shapeBorderColor = shapeBorderColorPicker.value;
+let shapeBorderSize = parseInt(shapeBorderSizeInput.value);
+
 
 // Function to display messages to the user
 function showMessage(text, type) {
@@ -125,6 +140,28 @@ function draw(e) {
     [lastX, lastY] = [currentX, currentY];
 }
 
+// Function to draw a shape
+function drawShape(type, x, y, width, height, radius, fillColor, borderColor, borderSize) {
+    ctx.beginPath();
+
+    if (type === 'rectangle') {
+        ctx.rect(x, y, width, height);
+    } else if (type === 'circle') {
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+    }
+
+    if (fillColor) {
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+    }
+    if (borderSize > 0 && borderColor) {
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = borderSize;
+        ctx.stroke();
+    }
+}
+
+
 // Event Listeners for Canvas (Brush Tool)
 artCanvas.addEventListener('mousedown', (e) => {
     isDrawing = true;
@@ -176,19 +213,49 @@ addTextBtn.addEventListener('click', () => {
         showMessage("Please enter text to add.", "error");
         return;
     }
-    // For simplicity, add text at a fixed position for now.
-    // A more advanced feature would allow clicking on canvas to place text.
-    const textX = 50; // Example X position
-    const textY = 50 + fontSize; // Example Y position, adjust based on font size
+    const textX = 50;
+    const textY = 50 + fontSize;
 
-    ctx.font = `${fontSize}px Inter, sans-serif`; // Use selected font size and family
-    ctx.fillStyle = textColor; // Use selected text color
-    ctx.fillText(currentText, textX, textY); // Draw the text
+    ctx.font = `${fontSize}px Inter, sans-serif`;
+    ctx.fillStyle = textColor;
+    ctx.fillText(currentText, textX, textY);
 
     showMessage("Text added to canvas!", "success");
-    // Optionally clear the text input after adding
-    // textInput.value = "";
-    // currentText = "";
+});
+
+// Control Event Listeners (Shape Tool)
+shapeTypeSelect.addEventListener('change', (e) => {
+    currentShapeType = e.target.value;
+});
+
+shapeFillColorPicker.addEventListener('input', (e) => {
+    shapeFillColor = e.target.value;
+});
+
+shapeBorderColorPicker.addEventListener('input', (e) => {
+    shapeBorderColor = e.target.value;
+});
+
+shapeBorderSizeInput.addEventListener('input', (e) => {
+    shapeBorderSize = parseInt(e.target.value);
+    shapeBorderSizeValueSpan.textContent = shapeBorderSize;
+});
+
+addShapeBtn.addEventListener('click', () => {
+    const x = 100; // Fixed x-position for simplicity
+    const y = 100; // Fixed y-position for simplicity
+
+    if (currentShapeType === 'rectangle') {
+        const width = 150; // Fixed width
+        const height = 100; // Fixed height
+        drawShape('rectangle', x, y, width, height, 0, shapeFillColor, shapeBorderColor, shapeBorderSize);
+        showMessage("Rectangle added!", "success");
+    } else if (currentShapeType === 'circle') {
+        const radius = 75; // Fixed radius
+        // For circles, x and y are the center, not top-left
+        drawShape('circle', x + radius, y + radius, 0, 0, radius, shapeFillColor, shapeBorderColor, shapeBorderSize);
+        showMessage("Circle added!", "success");
+    }
 });
 
 

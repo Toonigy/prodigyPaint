@@ -44,6 +44,31 @@
                 <button id="add-text-btn" class="btn-action">Add Text</button>
             </div>
 
+            <!-- Shape Tool Controls -->
+            <div class="control-group">
+                <label for="shape-type" class="text-gray-700 text-sm font-medium">Shape</label>
+                <select id="shape-type" class="p-2 border border-gray-300 rounded-md">
+                    <option value="rectangle">Rectangle</option>
+                    <option value="circle">Circle</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label for="shape-fill-color" class="text-gray-700 text-sm font-medium">Fill Color</label>
+                <input type="color" id="shape-fill-color" value="#4f46e5">
+            </div>
+            <div class="control-group">
+                <label for="shape-border-color" class="text-gray-700 text-sm font-medium">Border Color</label>
+                <input type="color" id="shape-border-color" value="#000000">
+            </div>
+            <div class="control-group">
+                <label for="shape-border-size" class="text-gray-700 text-sm font-medium">Border Size</label>
+                <input type="range" id="shape-border-size" min="0" max="20" value="2">
+                <span id="shape-border-size-value" class="text-gray-600 text-xs">2</span>
+            </div>
+            <div class="control-group">
+                <button id="add-shape-btn" class="btn-action">Add Shape</button>
+            </div>
+
 
             <!-- General Controls -->
             <div class="control-group">

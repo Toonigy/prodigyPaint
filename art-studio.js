@@ -47,6 +47,10 @@ const shapeBorderSizeInput = document.getElementById('shape-border-size');
 const shapeBorderSizeValueSpan = document.getElementById('shape-border-size-value');
 const addShapeBtn = document.getElementById('add-shape-btn');
 
+// Download Button Element (assuming it will be added to HTML)
+const downloadArtBtn = document.getElementById('download-art-btn');
+
+
 let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
@@ -161,6 +165,18 @@ function drawShape(type, x, y, width, height, radius, fillColor, borderColor, bo
     }
 }
 
+// Function to download the canvas content as an image
+function downloadArt() {
+    const dataURL = artCanvas.toDataURL('image/png'); // Get canvas content as PNG data URL
+    const a = document.createElement('a'); // Create a temporary link element
+    a.href = dataURL;
+    a.download = 'my_art.png'; // Set the filename for download
+    document.body.appendChild(a); // Append to body (required for Firefox)
+    a.click(); // Programmatically click the link to trigger download
+    document.body.removeChild(a); // Remove the link element
+    showMessage('Artwork downloaded!', 'success');
+}
+
 
 // Event Listeners for Canvas (Brush Tool)
 artCanvas.addEventListener('mousedown', (e) => {
@@ -268,6 +284,12 @@ clearCanvasBtn.addEventListener('click', () => {
 backToDashboardBtn.addEventListener('click', () => {
     window.location.href = 'dashboard.html';
 });
+
+// Download Art button event listener
+if (downloadArtBtn) { // Ensure the button exists before adding listener
+    downloadArtBtn.addEventListener('click', downloadArt);
+}
+
 
 // Handle window resize to adjust canvas
 window.addEventListener('resize', resizeCanvas);

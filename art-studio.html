@@ -6,128 +6,8 @@
     <title>Art Paint - Art Studio</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: "Inter", sans-serif;
-            background-color: #f0f2f5;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 1rem;
-            box-sizing: border-box;
-        }
-        .studio-container {
-            background-color: #ffffff;
-            padding: 1.5rem;
-            border-radius: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            text-align: center;
-            width: 100%;
-            max-width: 900px; /* Max width for the studio */
-        }
-        canvas {
-            background-color: #fff;
-            border: 1px solid #d1d5db;
-            border-radius: 0.5rem;
-            cursor: crosshair;
-            touch-action: none; /* Prevent browser default touch actions like scrolling */
-            width: 100%; /* Make canvas responsive */
-            height: 400px; /* Fixed height for now, can be dynamic */
-            margin-top: 1.5rem;
-        }
-        .controls {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-            padding: 1rem;
-            background-color: #f9fafb;
-            border-radius: 0.75rem;
-            border: 1px solid #e5e7eb;
-        }
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        input[type="color"] {
-            width: 40px;
-            height: 40px;
-            border: none;
-            padding: 0;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-        }
-        input[type="color"]::-webkit-color-swatch-wrapper {
-            padding: 0;
-        }
-        input[type="color"]::-webkit-color-swatch {
-            border: none;
-            border-radius: 0.5rem;
-        }
-        input[type="color"]::-moz-color-swatch-wrapper {
-            padding: 0;
-        }
-        input[type="color"]::-moz-color-swatch {
-            border: none;
-            border-radius: 0.5rem;
-        }
-        input[type="range"] {
-            width: 100px;
-            cursor: pointer;
-        }
-        button {
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background-color 0.2s ease-in-out;
-            border: 1px solid #d1d5db;
-        }
-        .btn-action {
-            background-color: #4f46e5;
-            color: white;
-        }
-        .btn-action:hover {
-            background-color: #4338ca;
-        }
-        .btn-secondary {
-            background-color: #e5e7eb;
-            color: #374151;
-        }
-        .btn-secondary:hover {
-            background-color: #d1d5db;
-        }
-        .message {
-            margin-top: 1rem;
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            font-weight: 500;
-            text-align: left;
-            width: 100%;
-            max-width: 900px;
-            box-sizing: border-box;
-        }
-        .message.success {
-            background-color: #d1fae5;
-            color: #065f46;
-        }
-        .message.error {
-            background-color: #fee2e2;
-            color: #991b1b;
-        }
-        .hidden {
-            display: none;
-        }
-    </style>
+    <!-- Link to external CSS file -->
+    <link rel="stylesheet" href="art-studio.css">
 </head>
 <body>
     <div class="studio-container">
@@ -135,8 +15,9 @@
         <p class="text-gray-600 mb-4" id="user-status">Loading user status...</p>
 
         <div class="controls">
+            <!-- Brush Controls -->
             <div class="control-group">
-                <label for="color-picker" class="text-gray-700 text-sm font-medium">Color</label>
+                <label for="color-picker" class="text-gray-700 text-sm font-medium">Brush Color</label>
                 <input type="color" id="color-picker" value="#000000">
             </div>
             <div class="control-group">
@@ -144,6 +25,27 @@
                 <input type="range" id="brush-size" min="1" max="50" value="5">
                 <span id="brush-size-value" class="text-gray-600 text-xs">5</span>
             </div>
+
+            <!-- Text Tool Controls -->
+            <div class="control-group">
+                <label for="text-input" class="text-gray-700 text-sm font-medium">Text</label>
+                <input type="text" id="text-input" placeholder="Enter text">
+            </div>
+            <div class="control-group">
+                <label for="font-size" class="text-gray-700 text-sm font-medium">Font Size</label>
+                <input type="number" id="font-size" min="10" max="100" value="24">
+                <span id="font-size-value" class="text-gray-600 text-xs">24</span>
+            </div>
+            <div class="control-group">
+                <label for="text-color-picker" class="text-gray-700 text-sm font-medium">Text Color</label>
+                <input type="color" id="text-color-picker" value="#000000">
+            </div>
+            <div class="control-group">
+                <button id="add-text-btn" class="btn-action">Add Text</button>
+            </div>
+
+
+            <!-- General Controls -->
             <div class="control-group">
                 <button id="clear-canvas-btn" class="btn-secondary">Clear Canvas</button>
             </div>
@@ -158,168 +60,7 @@
     <!-- Message Display Area -->
     <div id="message-area" class="message hidden"></div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // Global variables for Firebase config and app ID
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-        const firebaseConfig = {
-            apiKey: "AIzaSyDh1cFDmqgvZ_3_uiI5jdRV7ttLKtV6c5Q",
-            authDomain: "websitetester-9bfb4.firebaseapp.com",
-            databaseURL: "https://websitetester-9bfb4-default-rtdb.firebaseio.com",
-            projectId: "websitetester-9bfb4",
-            storageBucket: "websitetester-9bfb4.firebasestorage.app",
-            messagingSenderId: "483339959826",
-            appId: "1:483339959826:web:3e9303f92ffb302ca062cb",
-            measurementId: "G-WXTK30J819"
-        };
-
-        let app;
-        let auth;
-        let db;
-        let userId = null;
-
-        const userStatusElement = document.getElementById('user-status');
-        const messageArea = document.getElementById('message-area');
-        const artCanvas = document.getElementById('artCanvas');
-        const ctx = artCanvas.getContext('2d');
-        const colorPicker = document.getElementById('color-picker');
-        const brushSizeInput = document.getElementById('brush-size');
-        const brushSizeValueSpan = document.getElementById('brush-size-value');
-        const clearCanvasBtn = document.getElementById('clear-canvas-btn');
-        const backToDashboardBtn = document.getElementById('back-to-dashboard-btn');
-
-        let isDrawing = false;
-        let lastX = 0;
-        let lastY = 0;
-        let brushColor = colorPicker.value;
-        let brushSize = parseInt(brushSizeInput.value);
-
-        // Function to display messages to the user
-        function showMessage(text, type) {
-            messageArea.textContent = text;
-            messageArea.className = `message ${type}`;
-            messageArea.classList.remove('hidden');
-            setTimeout(() => {
-                messageArea.classList.add('hidden');
-            }, 5000);
-        }
-
-        // Initialize Firebase and set up authentication listener
-        async function initializeFirebaseAndAuth() {
-            try {
-                app = initializeApp(firebaseConfig);
-                auth = getAuth(app);
-                db = getFirestore(app);
-
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        userId = user.uid;
-                        const displayName = user.displayName || user.email || 'Anonymous';
-                        userStatusElement.textContent = `Logged in as: ${displayName} (ID: ${userId})`;
-                        showMessage(`Welcome to the Art Studio, ${displayName}!`, 'success');
-                        // Set canvas dimensions after user is confirmed logged in
-                        resizeCanvas();
-                    } else {
-                        // If user logs out or session expires, redirect back to login
-                        console.log("No user logged in, redirecting to login page.");
-                        window.location.href = 'index.html';
-                    }
-                });
-
-            } catch (error) {
-                console.error("Error initializing Firebase or setting up auth listener:", error);
-                showMessage(`Firebase initialization error: ${error.message}`, 'error');
-            }
-        }
-
-        // Canvas drawing functions
-        function resizeCanvas() {
-            // Set canvas dimensions to match its CSS size
-            artCanvas.width = artCanvas.offsetWidth;
-            artCanvas.height = artCanvas.offsetHeight;
-            // Redraw content if needed after resize (not implemented yet for simplicity)
-        }
-
-        function draw(e) {
-            if (!isDrawing) return;
-
-            const rect = artCanvas.getBoundingClientRect();
-            let clientX, clientY;
-
-            // Handle both mouse and touch events
-            if (e.touches && e.touches.length > 0) {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
-
-            const currentX = clientX - rect.left;
-            const currentY = clientY - rect.top;
-
-            ctx.beginPath();
-            ctx.moveTo(lastX, lastY);
-            ctx.lineTo(currentX, currentY);
-            ctx.strokeStyle = brushColor;
-            ctx.lineWidth = brushSize;
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.stroke();
-
-            [lastX, lastY] = [currentX, currentY];
-        }
-
-        // Event Listeners for Canvas
-        artCanvas.addEventListener('mousedown', (e) => {
-            isDrawing = true;
-            const rect = artCanvas.getBoundingClientRect();
-            [lastX, lastY] = [e.clientX - rect.left, e.clientY - rect.top];
-        });
-        artCanvas.addEventListener('mousemove', draw);
-        artCanvas.addEventListener('mouseup', () => isDrawing = false);
-        artCanvas.addEventListener('mouseout', () => isDrawing = false);
-
-        // Touch events for mobile responsiveness
-        artCanvas.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Prevent scrolling when drawing
-            isDrawing = true;
-            const rect = artCanvas.getBoundingClientRect();
-            [lastX, lastY] = [e.touches[0].clientX - rect.left, e.touches[0].clientY - rect.top];
-        });
-        artCanvas.addEventListener('touchmove', draw);
-        artCanvas.addEventListener('touchend', () => isDrawing = false);
-        artCanvas.addEventListener('touchcancel', () => isDrawing = false);
-
-
-        // Control Event Listeners
-        colorPicker.addEventListener('input', (e) => {
-            brushColor = e.target.value;
-        });
-
-        brushSizeInput.addEventListener('input', (e) => {
-            brushSize = parseInt(e.target.value);
-            brushSizeValueSpan.textContent = brushSize;
-        });
-
-        clearCanvasBtn.addEventListener('click', () => {
-            ctx.clearRect(0, 0, artCanvas.width, artCanvas.height);
-            showMessage('Canvas cleared!', 'success');
-        });
-
-        backToDashboardBtn.addEventListener('click', () => {
-            window.location.href = 'dashboard.html';
-        });
-
-        // Handle window resize to adjust canvas
-        window.addEventListener('resize', resizeCanvas);
-
-        // Initialize Firebase and Auth when the window loads
-        window.onload = initializeFirebaseAndAuth;
-    </script>
+    <!-- Link to external JavaScript file -->
+    <script type="module" src="art-studio.js"></script>
 </body>
 </html>
